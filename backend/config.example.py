@@ -6,7 +6,7 @@ load_dotenv(find_dotenv())
 
 try:
     client = MongoClient(
-        "mongodb+srv://apriansyah:apriansyah14@apriansyah.mo0hu.mongodb.net/?retryWrites=true&w=majority",
+        os.getenv("MONGO_URI"),
         serverSelectionTimeoutMS=30000,
         connectTimeoutMS=20000,
         socketTimeoutMS=20000,
