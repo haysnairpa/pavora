@@ -57,7 +57,7 @@ export default function Register() {
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
-            <div>
+            <div className='mb-4'>
               <Label htmlFor="name" className="sr-only">Full Name</Label>
               <Input
                 id="name"
@@ -88,7 +88,7 @@ export default function Register() {
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 required
-                className="rounded-b-md"
+                className="rounded-b-md mt-4"
                 placeholder="Password"
               />
               <button

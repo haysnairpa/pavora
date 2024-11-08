@@ -10,6 +10,8 @@ import "./globals.css"
 export default function RootLayout({ children }) {
   const pathname = usePathname()
   const isAuthPage = pathname?.startsWith('/auth')
+  const isProfilePage = pathname?.startsWith('/user/profile')
+  const isDashboardPage = pathname?.startsWith('/admin/dashboard')
   const [darkMode, setDarkMode] = useState(false)
 
   const toggleDarkMode = () => {
@@ -23,7 +25,9 @@ export default function RootLayout({ children }) {
         {!isAuthPage ? (
           <>
             <Navbar />
-            <SearchBar toggleDarkMode={toggleDarkMode} />
+            {!isProfilePage && !isDashboardPage && (
+              <SearchBar toggleDarkMode={toggleDarkMode} />
+            )}
             {children}
             <Footer />
           </>
