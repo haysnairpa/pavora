@@ -20,12 +20,16 @@ def get_products():
 def add_product():
     product_data = request.form.to_dict()
     
-    # category validation
+    # category & stock validation
     if not product_data.get('category') or not product_data['category'].strip():
         return jsonify({'error': 'Category is required'}), 400
         
+    if not product_data.get('stock') or int(product_data['stock']) < 0:
+        return jsonify({'error': 'Valid stock number is required'}), 400
+        
     product_data['category'] = product_data['category'].strip()
     product_data['price'] = float(product_data['price'])
+    product_data['stock'] = int(product_data['stock'])
     product_data['createdAt'] = datetime.utcnow()
     product_data['updatedAt'] = datetime.utcnow()
     

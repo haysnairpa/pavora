@@ -24,6 +24,7 @@ export default function Component() {
     category: '',
     image: '',
     newCategory: '',
+    stock: '',
   })
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [imagePreview, setImagePreview] = useState(null)
@@ -82,6 +83,7 @@ export default function Component() {
     formData.append('description', newProduct.description)
     formData.append('price', newProduct.price)
     formData.append('category', newProduct.category.trim())
+    formData.append('stock', newProduct.stock)
     formData.append('image', newProduct.image)
 
     try {
@@ -106,6 +108,7 @@ export default function Component() {
         category: '',
         image: '',
         newCategory: '',
+        stock: '',
       })
       setImagePreview(null)
     } catch (error) {
@@ -176,6 +179,14 @@ export default function Component() {
     { name: 'Jun', total: 5000 },
   ]
 
+  // helper function to format Rupiah
+  const rupiahFormat = (number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR'
+    }).format(number)
+  }
+
   return (
     <AdminLayout>
       <div className="flex-col md:flex">
@@ -189,7 +200,7 @@ export default function Component() {
             <TabsTrigger value="statistics">Statistics</TabsTrigger>
           </TabsList>
           <TabsContent value="products" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -199,6 +210,19 @@ export default function Component() {
                   <div className="text-2xl font-bold">{products.length}</div>
                 </CardContent>
               </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Stock</CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {products.reduce((sum, p) => sum + (p.stock || 0), 0)}
+                  </div>
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Categories</CardTitle>
@@ -210,6 +234,7 @@ export default function Component() {
                   </div>
                 </CardContent>
               </Card>
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Value</CardTitle>
@@ -217,7 +242,7 @@ export default function Component() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    ${products.reduce((sum, p) => sum + p.price, 0).toFixed(2)}
+                    {rupiahFormat(products.reduce((sum, p) => sum + p.price, 0))}
                   </div>
                 </CardContent>
               </Card>
@@ -233,6 +258,7 @@ export default function Component() {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Category</TableHead>
+                      <TableHead>Stock</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -242,7 +268,8 @@ export default function Component() {
                       <TableRow key={product._id}>
                         <TableCell>{product.name}</TableCell>
                         <TableCell>{product.category}</TableCell>
-                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>{product.stock}</TableCell>
+                        <TableCell>{rupiahFormat(product.price)}</TableCell>
                         <TableCell>
                           <Button variant="ghost" size="icon">
                             <Edit className="h-4 w-4" />
@@ -290,7 +317,7 @@ export default function Component() {
 
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label htmlFor="product-price">Price</Label>
+                        <Label htmlFor="product-price">Price (Rp)</Label>
                         <Input
                           id="product-price"
                           placeholder="Enter price"
@@ -302,57 +329,69 @@ export default function Component() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="product-category">Category</Label>
-                        {!showNewCategory ? (
-                          <div className="flex gap-2">
-                            <Select
-                              value={newProduct.category}
-                              onValueChange={(value) => setNewProduct({ ...newProduct, category: value })}
-                            >
-                              <SelectTrigger id="product-category">
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {categories.map((cat) => (
-                                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <Button 
-                              type="button" 
-                              variant="outline"
-                              onClick={() => setShowNewCategory(true)}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder="New category name"
-                              value={newProduct.newCategory}
-                              onChange={(e) => setNewProduct({ ...newProduct, newCategory: e.target.value })}
-                            />
-                            <Button 
-                              type="button"
-                              variant="outline" 
-                              onClick={handleAddCategory}
-                            >
-                              Add
-                            </Button>
-                            <Button 
-                              type="button"
-                              variant="ghost"
-                              onClick={() => {
-                                setShowNewCategory(false)
-                                setNewProduct({ ...newProduct, newCategory: '' })
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        )}
+                        <Label htmlFor="product-stock">Stock</Label>
+                        <Input
+                          id="product-stock"
+                          placeholder="Enter stock"
+                          type="number"
+                          min="0"
+                          value={newProduct.stock}
+                          onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                        />
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="product-category">Category</Label>
+                      {!showNewCategory ? (
+                        <div className="flex gap-2">
+                          <Select
+                            value={newProduct.category}
+                            onValueChange={(value) => setNewProduct({ ...newProduct, category: value })}
+                          >
+                            <SelectTrigger id="product-category">
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((cat) => (
+                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button 
+                            type="button" 
+                            variant="outline"
+                            onClick={() => setShowNewCategory(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="New category name"
+                            value={newProduct.newCategory}
+                            onChange={(e) => setNewProduct({ ...newProduct, newCategory: e.target.value })}
+                          />
+                          <Button 
+                            type="button"
+                            variant="outline" 
+                            onClick={handleAddCategory}
+                          >
+                            Add
+                          </Button>
+                          <Button 
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              setShowNewCategory(false)
+                              setNewProduct({ ...newProduct, newCategory: '' })
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2">
