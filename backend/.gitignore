@@ -1,14 +1,22 @@
-# backend/.gitignore
+# Dependencies
+node_modules/
 __pycache__/
-*.pyc
-.env
 venv/
-.pytest_cache/
-*.log
-.coverage
-htmlcov/
-dist/
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build
 build/
-*.egg-info/
-config.py
-connection.py
+dist/
+.next/
+
+# Misc
+.DS_Store
+*.pem
+*.pyc
+uploads/
