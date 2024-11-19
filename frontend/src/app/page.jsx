@@ -11,15 +11,56 @@ import { Button } from "@/components/ui/button";
 const Homepage = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/products/products')
+      if (!res.ok) throw new Error('Failed to fetch products')
+      const data = await res.json()
+      setProducts(data.products || [])
+    } catch (error) {
+      console.error('Error fetching products: ', error);
+      setProducts([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Render Products Section
+  const renderProducts = () => {
+    if(loading) {
+      return <div className="text-center">Loading products...</div>;
+    }
+
+    if (products.length === 0) {
+      return <div className="text-center">No products found</div>;
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {products.map((product) => (
+          <ProductCard 
+            key={product._id}
+            id={product._id}
+            name={product.name}
+            price={product.price}
+            image={product.image || '/assets/smartwatch.png'}
+            rating={product.rating || 0}
+            stock={product.stock}
+          />
+        ))}
+      </div>
+    )
+  }
 
   // Data state
   const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books'];
-  const products = [
-    { id: 1, name: 'Wireless Headphones', price: 99.99, rating: 4.5, image: '/assets/smartwatch.png' },
-    { id: 2, name: 'Smart Watch', price: 199.99, rating: 4.2, image: '/assets/smartwatch.png' },
-    { id: 3, name: 'Laptop', price: 999.99, rating: 4.8, image: '/assets/smartwatch.png' },
-    { id: 4, name: 'Smartphone', price: 699.99, rating: 4.6, image: '/assets/smartwatch.png' },
-  ]
   
   const slides = [
     {
@@ -65,6 +106,7 @@ const Homepage = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
+      <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       
       <main className="flex-grow bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white">
         <Carousel 
@@ -74,30 +116,29 @@ const Homepage = () => {
           prevSlide={prevSlide}
         />
 
-        <div className="container mx-auto py-12">
+        <div className="container mx-auto px-4 py-12">
           <h2 className="text-2xl font-bold mb-6">Categories</h2>
-          <div className="flex space-x-4 overflow-x-auto pb-4">
+          <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
             {categories.map((category, index) => (
               <Button
                 key={index}
                 variant="outline"
-                className="bg-white dark:bg-gray-700 text-gray-800 dark:text-white border-gray-300 dark:border-gray-600"
+                className="bg-white dark:bg-gray-700 text-gray-800 dark:text-white border-gray-300 dark:border-gray-600 whitespace-nowrap"
               >
                 {category}
               </Button>
             ))}
           </div>
-        </div>
 
-        <div className="container mx-auto py-12">
-          <h2 className="text-2xl font-bold mb-6">Featured Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <section className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Featured Products</h2>
+            <div className="container mx-auto px-4">
+              {renderProducts()}
+            </div>
+          </section>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
