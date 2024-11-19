@@ -54,3 +54,16 @@ def add_product():
         return jsonify(product_data), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+@products.route('/products/<id>', methods=['GET'])
+def get_product(id):
+    product = db.products.find_one({'_id': ObjectId(id)})
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    
+    # Convert ObjectId to string
+    product['_id'] = str(product['_id'])
+    
+    return jsonify({
+        'product': product
+    })

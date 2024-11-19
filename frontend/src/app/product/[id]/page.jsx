@@ -1,65 +1,114 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Star, ShoppingCart, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 
-// Data dummy
-const products = [
-  { id: 1, name: 'Wireless Headphones', price: 99.99, rating: 4.5, image: '/assets/smartwatch.png', description: 'High-quality wireless headphones with noise-cancelling technology and long battery life.' },
-  { id: 2, name: 'Smart Watch', price: 199.99, rating: 4.2, image: '/assets/smartwatch.png', description: 'Feature-packed smartwatch with health tracking, notifications, and customizable watch faces.' },
-  { id: 3, name: 'Laptop', price: 999.99, rating: 4.8, image: '/assets/smartwatch.png', description: 'Powerful and lightweight laptop perfect for work and entertainment.' },
-  { id: 4, name: 'Smartphone', price: 699.99, rating: 4.6, image: '/assets/smartwatch.png', description: 'Latest smartphone with advanced camera system and 5G capabilities.' },
-]
-
 export default function ProductDetail() {
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
   const params = useParams()
-  const product = products.find(p => p.id === parseInt(params.id))
 
-  if (!product) {
-    return <div>Product not found</div>
+  useEffect(() => {
+    fetchProduct()
+  }, [params.id])
+
+  const fetchProduct = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/products/products/${params.id}`)
+      if (!res.ok) throw new Error('Product not found')
+      const data = await res.json()
+      if (!data.product) throw new Error('Product not found')
+      setProduct(data.product)
+    } catch (error) {
+      console.error('Error fetching product:', error)
+      setProduct(null)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const incrementQuantity = () => setQuantity(q => q + 1)
-  const decrementQuantity = () => setQuantity(q => Math.max(1, q - 1))
+  const rupiahFormat = (number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR'
+    }).format(number)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Product Not Found</h2>
+          <p className="text-gray-600 dark:text-gray-300">The product you're looking for doesn't exist.</p>
+          <Link href="/">
+            <Button className="mt-4">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white">
-
       <main className="container mx-auto py-8 px-4">
+        <Link href="/" className="inline-flex items-center mb-6 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Products
+        </Link>
+
         <div className="grid md:grid-cols-2 gap-8">
-          <div>
-            <Image 
-              src={product.image} 
-              alt={product.name} 
-              width={400}
-              height={400}
-              className="w-full h-auto rounded-lg shadow-md"
-              priority
-            />
+          <div className="bg-white dark:bg-gray-700 rounded-lg p-4">
+            <div className="relative aspect-square">
+              <Image 
+                src={product.image} 
+                alt={product.name} 
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
           </div>
+          
           <div>
             <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
             <div className="flex items-center mb-4">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className={`w-5 h-5 ${i < Math.floor(product.rating) ? 'text-yellow-500' : 'text-gray-300'}`} />
+                <Star key={i} className={`w-5 h-5 ${i < Math.floor(product.rating || 0) ? 'text-yellow-500' : 'text-gray-300'}`} />
               ))}
-              <span className="ml-2 text-gray-600 dark:text-gray-400">{product.rating}</span>
+              <span className="ml-2 text-gray-600 dark:text-gray-400">{product.rating || 0}</span>
             </div>
-            <p className="text-2xl font-bold mb-4">${product.price.toFixed(2)}</p>
+            <p className="text-2xl font-bold mb-4">{rupiahFormat(product.price)}</p>
             <p className="mb-6">{product.description}</p>
-            <div className="flex items-center mb-6">
-              <Button onClick={decrementQuantity} variant="outline" className="px-3">-</Button>
-              <span className="mx-4 text-xl">{quantity}</span>
-              <Button onClick={incrementQuantity} variant="outline" className="px-3">+</Button>
+            <div className="mb-6">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Stock: {product.stock}</p>
             </div>
-            <Button className="w-full bg-gray-800 dark:bg-white text-white dark:text-gray-800 hover:bg-gray-700 dark:hover:bg-gray-100">
+            <div className="flex items-center mb-6">
+              <Button onClick={() => setQuantity(q => Math.max(1, q - 1))} variant="outline" className="px-3">-</Button>
+              <span className="mx-4 text-xl">{quantity}</span>
+              <Button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} variant="outline" className="px-3">+</Button>
+            </div>
+            <Button 
+              className="w-full bg-gray-800 dark:bg-white text-white dark:text-gray-800 hover:bg-gray-700 dark:hover:bg-gray-100"
+              disabled={product.stock === 0}
+            >
               <ShoppingCart className="mr-2" />
-              Add to Cart
+              {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
             </Button>
           </div>
         </div>
