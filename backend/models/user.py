@@ -29,3 +29,17 @@ class User:
     @staticmethod
     def verify_password(stored_password, provided_password):
         return check_password_hash(stored_password, provided_password)
+    
+    @staticmethod
+    def update_user(user_id, update_data):
+        try:
+            result = db.user.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": update_data}
+            )
+            if result.modified_count:
+                return db.user.find_one({"_id": ObjectId(user_id)})
+            return None
+        except Exception as e:
+            print(f"Error updating user: {e}")
+            return None

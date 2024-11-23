@@ -5,16 +5,24 @@ from config import db
 from routes.auth import auth
 from routes.categories import categories
 from routes.products import products
+from flask_jwt_extended import JWTManager
+from datetime import timedelta
 import os
 
 app = Flask(__name__)
+app.config['JWT_SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+
 CORS(app, resources={
     r"/*": {
-        "origins": "*",
+        "origins": ["http://localhost:3000"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
+        "supports_credentials": True
     }
 })
+
+jwt = JWTManager(app)
 
 # app.static_folder = 'uploads'
 # app.static_url_path = '/uploads'

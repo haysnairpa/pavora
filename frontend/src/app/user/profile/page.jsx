@@ -26,9 +26,36 @@ export default function Profile() {
     }
   }, [])
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('Profile updated:', userData);
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`http://localhost:5000/auth/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          username: userData.username
+        })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error (data.error)
+      }
+
+      localStorage.setItem('user', JSON.stringify({
+        ...userData,
+        username: userData.username
+      }))
+
+      alert('Profile updated successfully!')
+    } catch (error) {
+      alert(error.message)
+    }
   };  
 
   if (!userData) {
@@ -92,11 +119,11 @@ export default function Profile() {
                           />
                         </div>
                       </div>
+                      <div className="mt-4">
+                        <Button type="submit">Save Changes</Button>
+                      </div>
                     </form>
                   </CardContent>
-                  <CardFooter>
-                    <Button type="submit">Save Changes</Button>
-                  </CardFooter>
                 </Card>
               </TabsContent>
               <TabsContent value="orders">

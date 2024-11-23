@@ -20,3 +20,6 @@ dist/
 *.pem
 *.pyc
 uploads/
+
+config.py
+connection.py
