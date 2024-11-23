@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import Navbar from '@/components/Navbar'
-import SearchBar from '@/components/SearchBar'
 import Footer from '@/components/Footer'
 import "./globals.css"
 
@@ -24,10 +23,7 @@ export default function RootLayout({ children }) {
       <body className={`font-geist ${darkMode ? 'dark' : ''}`}>
         {!isAuthPage ? (
           <>
-            <Navbar />
-            {!isProfilePage && !isDashboardPage && (
-              <SearchBar toggleDarkMode={toggleDarkMode} />
-            )}
+            <Navbar toggleDarkMode={toggleDarkMode} />
             {children}
             <Footer />
           </>

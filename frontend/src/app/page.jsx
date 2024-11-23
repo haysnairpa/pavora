@@ -6,7 +6,6 @@ import ProductCard from '@/components/ProductCard';
 import { Button } from "@/components/ui/button";
 
 const Homepage = () => {
-  const [darkMode, setDarkMode] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true)
@@ -80,12 +79,6 @@ const Homepage = () => {
     }
   ]
 
-  // Functions
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-  };
-
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
@@ -102,7 +95,7 @@ const Homepage = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
+    <div className="min-h-screen flex flex-col">
       <main className="flex-grow bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white">
         <Carousel 
           slides={slides}
