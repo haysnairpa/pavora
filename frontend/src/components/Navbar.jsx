@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { Search, User, ShoppingCart, Moon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
 const Navbar = ({ toggleDarkMode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const router = useRouter()
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -27,7 +29,7 @@ const Navbar = ({ toggleDarkMode }) => {
     setIsLoggedIn(false);
     setUser(null);
     setIsDropdownOpen(false);
-    window.location.reload();
+    router.push('/')
   };
 
   return (
