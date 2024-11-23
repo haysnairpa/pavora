@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from bson import ObjectId
 from config import db
+import base64
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
@@ -18,7 +19,19 @@ def get_products():
 
 @products.route('/products', methods=['POST'])
 def add_product():
-    product_data = request.form.to_dict()
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image uploaded'}), 400
+        
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'error': 'No image selected'}), 400
+        
+    # read image as a bytes and encode it to base64
+    if file:
+        image_binary = file.read()
+        image_base64 = base64.b64encode(image_binary).decode('utf-8')
+        product_data = request.form.to_dict()
+        product_data['image'] = image_base64
     
     # category & stock validation
     if not product_data.get('category') or not product_data['category'].strip():
@@ -41,13 +54,12 @@ def add_product():
             'createdAt': datetime.utcnow()
         })
 
-    # handle image upload
-    if 'image' in request.files:
-        file = request.files['image']
-        filename = secure_filename(file.filename)
-        file.save(os.path.join('uploads', filename))
-        product_data['image'] = f'/uploads/{filename}'
-
+    product_data['category'] = product_data['category'].strip()
+    product_data['price'] = float(product_data['price'])
+    product_data['stock'] = int(product_data['stock'])
+    product_data['createdAt'] = datetime.utcnow()
+    product_data['updatedAt'] = datetime.utcnow()
+    
     try:
         result = db.products.insert_one(product_data)
         product_data['_id'] = str(result.inserted_id)

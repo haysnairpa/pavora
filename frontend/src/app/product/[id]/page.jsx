@@ -76,7 +76,7 @@ export default function ProductDetail() {
           <div className="bg-white dark:bg-gray-700 rounded-lg p-4">
             <div className="relative aspect-square">
               <Image 
-                src={product.image} 
+                src={product.image ? `data:image/jpeg;base64,${product.image}` : '/assets/smartwatch.png'} 
                 alt={product.name} 
                 fill
                 className="object-contain"

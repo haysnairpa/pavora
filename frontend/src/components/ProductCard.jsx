@@ -16,7 +16,7 @@ export default function ProductCard({ id, name, price, image, rating, stock }) {
       <div className="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-full">
         <div className="relative aspect-square">
           <Image
-            src={image}
+            src={image ? `data:image/jpeg;base64,${image}` : '/assets/smartwatch.png'}
             alt={name}
             fill
             className="object-contain p-4"

@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
-import SearchBar from '@/components/SearchBar';
 import Carousel from '@/components/Carousel';
 import ProductCard from '@/components/ProductCard';
-import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
 
 const Homepage = () => {
@@ -106,8 +103,6 @@ const Homepage = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${darkMode ? 'dark' : ''}`}>
-      <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-      
       <main className="flex-grow bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-white">
         <Carousel 
           slides={slides}
@@ -138,7 +133,6 @@ const Homepage = () => {
           </section>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
