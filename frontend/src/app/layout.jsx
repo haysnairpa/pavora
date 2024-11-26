@@ -12,10 +12,15 @@ export default function RootLayout({ children }) {
   const isProfilePage = pathname?.startsWith('/user/profile')
   const isDashboardPage = pathname?.startsWith('/admin/dashboard')
   const [darkMode, setDarkMode] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
     document.documentElement.classList.toggle('dark')
+  }
+
+  const handleSearch = (query) => {
+    setSearchQuery(query)
   }
 
   return (
@@ -23,7 +28,7 @@ export default function RootLayout({ children }) {
       <body className={`font-geist ${darkMode ? 'dark' : ''}`}>
         {!isAuthPage ? (
           <>
-            <Navbar toggleDarkMode={toggleDarkMode} />
+            <Navbar toggleDarkMode={toggleDarkMode} onSearch={handleSearch} />
             {children}
             <Footer />
           </>

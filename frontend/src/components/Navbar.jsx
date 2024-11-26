@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import SearchBar from './SearchBar';
 
 const Navbar = ({ toggleDarkMode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -32,6 +33,10 @@ const Navbar = ({ toggleDarkMode }) => {
     router.push('/')
   };
 
+  const handleSearch = (query) => {
+    router.push(`/?search=${encodeURIComponent(query)}`);
+  };
+
   return (
     <header className="bg-white dark:bg-gray-900 text-gray-800 dark:text-white shadow-sm">
       <div className="container mx-auto py-3 px-4">
@@ -40,14 +45,7 @@ const Navbar = ({ toggleDarkMode }) => {
             E-Shop
           </Link>
 
-          <div className="relative flex-grow max-w-xl">
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="pl-10 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white border-none w-full"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          </div>
+          <SearchBar onSearch={handleSearch} />
 
           <div className="flex items-center gap-2">
             {isLoggedIn ? (

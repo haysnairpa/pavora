@@ -4,14 +4,20 @@ import { useState, useEffect } from 'react';
 import Carousel from '@/components/Carousel';
 import ProductCard from '@/components/ProductCard';
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from 'next/navigation';
 
 const Homepage = () => {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('search') || '';
   const [currentSlide, setCurrentSlide] = useState(0);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   useEffect(() => {
     fetchProducts()
+    fetchCategories()
   }, [])
 
   const fetchProducts = async () => {
@@ -28,35 +34,71 @@ const Homepage = () => {
     }
   }
 
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/categories/categories')
+      if (!res.ok) throw new Error('Failed to fetch categories')
+      const data = await res.json()
+      setCategories(data.categories || [])
+    } catch (error) {
+      console.error('Error fetching categories: ', error);
+      setCategories([])
+    }
+  }
+
+  // Fungsi filter products
+  const filteredProducts = products.filter(product => {
+    const matchSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                       product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCategory = selectedCategory ? product.category === selectedCategory : true;
+    return matchSearch && matchCategory;
+  });
+
+  // Handle search dari navbar
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+  };
+
+  // Handle filter kategori
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category === selectedCategory ? '' : category);
+  };
+
   // Render Products Section
   const renderProducts = () => {
     if(loading) {
       return <div className="text-center">Loading products...</div>;
     }
 
-    if (products.length === 0) {
-      return <div className="text-center">No products found</div>;
+    if (filteredProducts.length === 0) {
+      return (
+        <div className="text-center">
+          <p>No products found</p>
+          {searchQuery && (
+            <p className="text-sm text-gray-500 mt-2">
+              Try searching with different keywords
+            </p>
+          )}
+        </div>
+      );
     }
 
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <ProductCard 
             key={product._id}
             id={product._id}
             name={product.name}
             price={product.price}
-            image={product.image || '/assets/smartwatch.png'}
+            image={product.image}
             rating={product.rating || 0}
             stock={product.stock}
           />
         ))}
       </div>
-    )
-  }
-
-  // Data state
-  const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books'];
+    );
+  };
   
   const slides = [
     {
@@ -110,8 +152,13 @@ const Homepage = () => {
             {categories.map((category, index) => (
               <Button
                 key={index}
-                variant="outline"
-                className="bg-white dark:bg-gray-700 text-gray-800 dark:text-white border-gray-300 dark:border-gray-600 whitespace-nowrap"
+                variant={selectedCategory === category ? "default" : "outline"}
+                className={`whitespace-nowrap ${
+                  selectedCategory === category 
+                    ? "bg-gray-800 text-white dark:bg-white dark:text-gray-800" 
+                    : "bg-white dark:bg-gray-700 text-gray-800 dark:text-white border-gray-300 dark:border-gray-600"
+                }`}
+                onClick={() => handleCategoryClick(category)}
               >
                 {category}
               </Button>
