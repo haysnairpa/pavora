@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Star, ShoppingCart, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -11,9 +11,13 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
   const params = useParams()
 
   useEffect(() => {
+    const token = localStorage.getItem('token')
+    setIsLoggedIn(!!token)
     fetchProduct()
   }, [params.id])
 
@@ -37,6 +41,46 @@ export default function ProductDetail() {
       style: 'currency',
       currency: 'IDR'
     }).format(number)
+  }
+
+  const addToCart = () => {
+    if (!isLoggedIn) {
+      router.push('/auth/login')
+      return
+    }
+
+    const cartItem = {
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity: quantity,
+      stock: product.stock
+    }
+
+    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]')
+    const existingItemIndex = existingCart.findIndex(item => item.id === cartItem.id)
+
+    let newCart
+    if (existingItemIndex > -1) {
+      // Update quantity if item exists
+      newCart = existingCart.map((item, index) => {
+        if (index === existingItemIndex) {
+          const newQuantity = item.quantity + quantity
+          return {
+            ...item,
+            quantity: Math.min(newQuantity, item.stock) // Ensure we don't exceed stock
+          }
+        }
+        return item
+      })
+    } else {
+      // Add new item if it doesn't exist
+      newCart = [...existingCart, cartItem]
+    }
+
+    localStorage.setItem('cart', JSON.stringify(newCart))
+    alert('Product added to cart!')
   }
 
   if (loading) {
@@ -106,6 +150,7 @@ export default function ProductDetail() {
             <Button 
               className="w-full bg-gray-800 dark:bg-white text-white dark:text-gray-800 hover:bg-gray-700 dark:hover:bg-gray-100"
               disabled={product.stock === 0}
+              onClick={addToCart}
             >
               <ShoppingCart className="mr-2" />
               {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
