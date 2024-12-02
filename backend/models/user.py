@@ -4,11 +4,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from config import db
 
 class User:
-    def __init__(self, username, email, password, role="customer"):
+    def __init__(self, username, email, password, role="customer", profileImage=None):
         self.username = username
         self.email = email
         self.password = generate_password_hash(password)
         self.role = role
+        self.profileImage = profileImage
         self.created_at = datetime.now()
 
     def save(self):
@@ -17,6 +18,7 @@ class User:
             "email": self.email,
             "password": self.password,
             "role": self.role,
+            "profileImage": self.profileImage,
             "created_at": self.created_at
         }
         result = db.user.insert_one(user_data)

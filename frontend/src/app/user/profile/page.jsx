@@ -16,11 +16,16 @@ export default function Profile() {
   const [userData, setUserData] = useState(null)
   const router = useRouter()
   const [orders, setOrders] = useState([])
+  const [isUploading, setIsUploading] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState(null)
+  const [selectedImage, setSelectedImage] = useState(null)
 
   useEffect(() => {
     const user = localStorage.getItem('user')
     if (user) {
-      setUserData(JSON.parse(user))
+      const parsedUser = JSON.parse(user)
+      setUserData(parsedUser)
+      setPreviewUrl(parsedUser.profileImage)
     } else {
       router.push('/auth/login')
     }
@@ -58,6 +63,61 @@ export default function Profile() {
     }
   };  
 
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size should be less than 5MB');
+      return;
+    }
+
+    // Preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/auth/update-profile-image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to upload image');
+      }
+
+      const updatedUserData = {
+        ...userData,
+        profileImage: data.profileImage
+      };
+
+      setUserData(updatedUserData);
+      localStorage.setItem('user', JSON.stringify(updatedUserData));
+      setPreviewUrl(data.profileImage);
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error.message);
+      // Revert preview on error
+      setPreviewUrl(userData?.profileImage || null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   if (!userData) {
     return <div>Loading...</div>
   }
@@ -74,10 +134,36 @@ export default function Profile() {
                 <CardTitle>Account</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-col items-center">
-                <Avatar className="w-32 h-32 mb-4">
-                  <AvatarImage src="/placeholder.svg" alt={userData.username} />
-                  <AvatarFallback>{userData.username.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
+                <div className="relative group cursor-pointer">
+                  <Avatar className="w-32 h-32 mb-4 transition-opacity group-hover:opacity-75">
+                    <AvatarImage 
+                      src={previewUrl || "/placeholder.svg"} 
+                      alt={userData.username}
+                      className="object-cover"
+                    />
+                    <AvatarFallback>{userData.username.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Input
+                      type="file"
+                      id="profileImage"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) handleImageUpload(file);
+                      }}
+                      disabled={isUploading}
+                    />
+                    <div 
+                      onClick={() => !isUploading && document.getElementById('profileImage').click()}
+                      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full text-white text-sm font-medium"
+                    >
+                      {isUploading ? 'Uploading...' : 'Change Photo'}
+                    </div>
+                  </div>
+                </div>
                 <h2 className="text-xl font-semibold">{userData.username}</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{userData.email}</p>
               </CardContent>

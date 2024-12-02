@@ -24,8 +24,9 @@ CORS(app, resources={
 
 jwt = JWTManager(app)
 
-# app.static_folder = 'uploads'
-# app.static_url_path = '/uploads'
+# Configure static file serving for uploads
+app.static_folder = 'uploads'
+app.static_url_path = '/uploads'
 
 app.register_blueprint(auth, url_prefix='/auth')
 app.register_blueprint(categories, url_prefix='/categories')
